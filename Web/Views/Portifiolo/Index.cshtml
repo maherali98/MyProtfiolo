@@ -1,0 +1,167 @@
+﻿@model IEnumerable<Core.Entities.PortifioloItem>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+    <div style="padding:120px;">
+        <h1>Index</h1>
+
+        <p>
+            <a asp-action="Create" class="btn btn btn-primary">Create New</a>
+        </p>
+
+        <form method="get">
+            <div class="input-group">
+                <input class="form-control" >
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </div>
+            </div>
+        </form>
+        <br /><br />
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        @Html.DisplayNameFor(model => model.ProjectName)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Description)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.ImgUrl)
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.ProjectName)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Description)
+                        </td>
+                        <td>
+                            <img src="~/img/portfolio/@item.ImgUrl" class="img img-thumbnail" style="width:60px;height=65px;">
+                        </td>
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@item.Id"><i class="fas fa-edit"></i></a> |
+                            <a asp-action="Details" asp-route-id="@item.Id"><i class="fas fa-eye"></i></a> |
+                            <a asp-action="Delete" asp-route-id="@item.Id"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+    $(document).ready(function () {
+
+        GetPageData(1);
+
+    });
+
+
+    function GetPageData(pageNum, pageSize) {
+
+        $("#tblData").empty();
+        $("#paged").empty();
+        $.getJSON("/Customer/GetAll",
+            {
+                pageNumber: pageNum,
+                pageSize: pageSize
+            },
+            function (response) {
+                var rowData = "";
+                for (var i = 0; i < response.Data.length; i++) {
+                    rowData = rowData + '<tr>' +
+                        '<td>' + response.Data[i].CustomerId + '</td >' +
+                        '<td>' + response.Data[i].Name + '</td>' +
+                        '<td>' + response.Data[i].Address + '</td>' +
+                        '<td>' + response.Data[i].Phone + '</td>' +
+                        '</tr >';
+                }
+                $("#tblData").append(rowData);
+                PaggingTemplate(response.TotalPages, response.CurrentPage);
+            });
+
+    }
+
+
+
+
+
+
+     function PaggingTemplate(totalPage, currentPage) {
+        var template = "";
+        var TotalPages = totalPage;
+        var CurrentPage = currentPage;
+        var PageNumberArray = Array();
+
+
+        var countIncr = 1;
+        for (var i = currentPage; i <= totalPage; i++) {
+            PageNumberArray[0] = currentPage;
+            if (totalPage != currentPage && PageNumberArray[countIncr - 1] != totalPage) {
+                PageNumberArray[countIncr] = i + 1;
+            }
+            countIncr++;
+        };
+        PageNumberArray = PageNumberArray.slice(0, 5);
+        var FirstPage = 1;
+        var LastPage = totalPage;
+        if (totalPage != currentPage) {
+            var ForwardOne = currentPage + 1;
+        }
+        var BackwardOne = 1;
+        if (currentPage > 1) {
+            BackwardOne = currentPage - 1;
+        }
+
+
+
+        template = "<p>" + CurrentPage + " of " + TotalPages + " pages</p>"
+        template = template + '<ul class="pager">' +
+            '<li class="previous"><a href="#" onclick="GetPageData(' + FirstPage + ')"><i class="fa fa-fast-backward"></i>&nbsp;First</a></li>' +
+            '<li><select ng-model="pageSize" id="selectedId"><option value="10" selected>10</option><option value="50">50</option><option value="100">100</option><option value="150">150</option></select> </li>' +
+            '<li><a href="#" onclick="GetPageData(' + BackwardOne + ')"><i class="glyphicon glyphicon-backward"></i></a>';
+
+
+
+        var numberingLoop = "";
+        for (var i = 0; i < PageNumberArray.length; i++) {
+            numberingLoop = numberingLoop + '<a class="page-number active" onclick="GetPageData(' + PageNumberArray[i] + ')" href="#">' + PageNumberArray[i] + ' &nbsp;&nbsp;</a>'
+        }
+
+
+        template = template + numberingLoop + '<a href="#" onclick="GetPageData(' + ForwardOne + ')" ><i class="glyphicon glyphicon-forward"></i></a></li>' +
+            '<li class="next"><a href="#" onclick="GetPageData(' + LastPage + ')">Last&nbsp;<i class="fa fa-fast-forward"></i></a></li></ul>';
+
+
+        $("#paged").append(template);
+        $('#selectedId').change(function () {
+            GetPageData(1, $(this).val());
+        });
+    }
+
+
+    <div id="paged">
+
+    </div>
+</script>
